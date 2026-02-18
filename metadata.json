@@ -1,0 +1,15 @@
+{
+  "name": "LyricsBar for Spotify",
+  "description": "Your top bar, now singing. Real-time synchronized Spotify lyrics on your GNOME desktop panel.",
+  "uuid": "lyricsbar@Jachu7.github.io",
+  "shell-version": [
+    "45",
+    "46",
+    "47",
+    "48",
+    "49"
+  ],
+  "url": "",
+  "settings-schema": "org.gnome.shell.extensions.barlyrics",
+  "version": 1
+}

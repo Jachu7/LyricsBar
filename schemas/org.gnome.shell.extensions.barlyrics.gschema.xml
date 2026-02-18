@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist gettext-domain="barlyrics">
+  <schema id="org.gnome.shell.extensions.barlyrics" path="/org/gnome/shell/extensions/barlyrics/">
+
+    <!-- Authentication (internal) -->
+    <key name="auth-trigger" type="b">
+      <default>false</default>
+      <summary>Trigger Authentication</summary>
+      <description>Toggle to trigger the OAuth flow</description>
+    </key>
+    <key name="logout-trigger" type="b">
+      <default>false</default>
+      <summary>Trigger Logout</summary>
+      <description>Toggle to trigger token cleanup and logout</description>
+    </key>
+    <key name="authenticated-user" type="s">
+      <default>""</default>
+      <summary>Authenticated User</summary>
+      <description>Display name of the currently logged in Spotify user (empty if not logged in)</description>
+    </key>
+
+    <!-- Appearance -->
+    <key name="max-text-width" type="i">
+      <default>300</default>
+      <summary>Max Text Width (px)</summary>
+      <description>Maximum width of the lyrics text in pixels before it gets ellipsized</description>
+    </key>
+    <key name="font-size" type="i">
+      <default>0</default>
+      <summary>Font Size (px, 0 = default)</summary>
+      <description>Custom font size in pixels. 0 means use the system default.</description>
+    </key>
+    <key name="show-icon" type="b">
+      <default>false</default>
+      <summary>Show Music Icon</summary>
+      <description>Show a small music icon next to the lyrics text</description>
+    </key>
+    <key name="panel-position" type="s">
+      <default>"center"</default>
+      <summary>Panel Position</summary>
+      <description>Where to place the lyrics on the top bar: left, center, or right</description>
+    </key>
+    <key name="panel-index" type="i">
+      <default>0</default>
+      <summary>Order in Panel</summary>
+      <description>Position index within the chosen panel section</description>
+    </key>
+    <key name="show-title-fallback" type="b">
+      <default>true</default>
+      <summary>Show Artist - Title</summary>
+      <description>Show "Artist — Title" when no synced lyrics are available</description>
+    </key>
+    <key name="hide-when-paused" type="b">
+      <default>true</default>
+      <summary>Hide When Paused</summary>
+      <description>Hide the lyrics text when Spotify is paused</description>
+    </key>
+
+    <!-- Behavior -->
+    <key name="poll-interval" type="i">
+      <default>5</default>
+      <summary>Poll Interval (seconds)</summary>
+      <description>How often to check Spotify for the current track (3-10 seconds)</description>
+    </key>
+    <key name="lyrics-offset" type="d">
+      <default>-0.5</default>
+      <summary>Lyrics Offset (seconds)</summary>
+      <description>Shift lyrics timing. Negative = lyrics appear later, positive = earlier. Useful if lyrics feel ahead or behind the music.</description>
+    </key>
+
+  </schema>
+</schemalist>
