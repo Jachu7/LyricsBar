@@ -9,7 +9,7 @@ const CLIENT_ID = '802bf6aeb6f54fc9a4da5df2ae7a6881';
 const SPOTIFY_AUTH_URL = 'https://accounts.spotify.com/authorize';
 const SPOTIFY_TOKEN_URL = 'https://accounts.spotify.com/api/token';
 const REDIRECT_URI = 'http://127.0.0.1:8888/callback';
-const SCOPES = 'user-read-playback-state';
+const SCOPES = 'user-read-playback-state user-read-currently-playing';
 const SECRET_SCHEMA = new Secret.Schema(
     'org.gnome.shell.extensions.barlyrics',
     Secret.SchemaFlags.NONE,
@@ -72,6 +72,9 @@ export const AuthManager = GObject.registerClass({
     }
 
     _startLocalServer() {
+        // TODO: Consider migrating to Soup.Server for proper HTTP parsing.
+        // Gio.SocketService is low-level and doesn't handle edge cases like
+        // split headers or preflight requests. Works for this simple callback.
         try {
             this._server = new Gio.SocketService();
 
@@ -185,7 +188,7 @@ export const AuthManager = GObject.registerClass({
     <p class="brand">LYRICSBAR FOR SPOTIFY</p>
   </div>
   <script>
-    let n=10; const el=document.getElementById('cd');
+    let n=3; const el=document.getElementById('cd');
     const t=setInterval(()=>{n--;el.textContent=n;if(n<=0){clearInterval(t);window.close();}},1000);
   </script>
 </body>
@@ -310,6 +313,10 @@ export const AuthManager = GObject.registerClass({
         return await this._refreshAccessToken();
     }
 
+    invalidateToken() {
+        this._accessToken = null;
+    }
+
     async _refreshAccessToken() {
         return new Promise((resolve) => {
             Secret.password_lookup(
@@ -368,7 +375,7 @@ export const AuthManager = GObject.registerClass({
         const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
         let result = '';
         for (let i = 0; i < length; i++) {
-            result += chars.charAt(Math.floor(Math.random() * chars.length));
+            result += chars.charAt(GLib.random_int() % chars.length);
         }
         return result;
     }
@@ -400,6 +407,9 @@ export const AuthManager = GObject.registerClass({
             } catch (_e) { /* ignore */ }
             this._server = null;
         }
-        this._session = null;
+        if (this._session) {
+            this._session.abort();
+            this._session = null;
+        }
     }
 });

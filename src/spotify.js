@@ -11,9 +11,10 @@ export const SpotifyClient = GObject.registerClass({
         super._init();
         this._authManager = authManager;
         this._session = new Soup.Session();
+        this._session.user_agent = 'LyricsBar/1.0';
     }
 
-    async getCurrentTrack() {
+    async getCurrentTrack(isRetry = false) {
         const token = await this._authManager.getAccessToken();
         if (!token) return null;
 
@@ -33,18 +34,24 @@ export const SpotifyClient = GObject.registerClass({
                 return {
                     id: data.item.id,
                     title: data.item.name,
-                    artist: data.item.artists.map(a => a.name).join(', '),
-                    album: data.item.album.name,
+                    artist: (data.item.artists || []).map(a => a.name).join(', '),
+                    album: data.item.album?.name || '',
                     duration: data.item.duration_ms / 1000,
                     progress: data.progress_ms / 1000,
                     isPlaying: data.is_playing,
-                    image: data.item.album.images?.[0]?.url,
+                    image: data.item.album?.images?.[0]?.url,
                 };
             } else if (status === 204) {
                 return null;
             } else if (status === 401) {
                 console.warn('[LyricsBar] Token expired (401).');
-                this._authManager._accessToken = null;
+                this._authManager.invalidateToken();
+                if (!isRetry) {
+                    return this.getCurrentTrack(true);
+                }
+                return null;
+            } else if (status === 429) {
+                console.warn('[LyricsBar] Rate limited (429). Backing off.');
                 return null;
             } else {
                 console.error(`[LyricsBar] Spotify API error: ${status}`);
@@ -56,7 +63,7 @@ export const SpotifyClient = GObject.registerClass({
         }
     }
 
-    async getUserProfile() {
+    async getUserProfile(isRetry = false) {
         const token = await this._authManager.getAccessToken();
         if (!token) return null;
 
@@ -70,11 +77,24 @@ export const SpotifyClient = GObject.registerClass({
             if (status === 200) {
                 const decoder = new TextDecoder();
                 return JSON.parse(decoder.decode(bytes.get_data()));
+            } else if (status === 401) {
+                console.warn('[LyricsBar] Token expired during profile fetch (401).');
+                this._authManager.invalidateToken();
+                if (!isRetry) {
+                    return this.getUserProfile(true);
+                }
             }
             return null;
         } catch (e) {
             console.error('[LyricsBar] Failed to fetch user profile:', e);
             return null;
+        }
+    }
+
+    destroy() {
+        if (this._session) {
+            this._session.abort();
+            this._session = null;
         }
     }
 });

@@ -1,4 +1,5 @@
 import GLib from 'gi://GLib';
+import Gio from 'gi://Gio';
 import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
@@ -31,6 +32,8 @@ export default class LyricsBarExtension extends Extension {
         this._lastProgress = 0;
         this._lastUpdateTime = 0;
         this._isPlaying = false;
+        this._isFetching = false;
+        this._lyricsCancellable = null;
 
         // Start polling
         this._startPolling();
@@ -124,8 +127,14 @@ export default class LyricsBarExtension extends Extension {
             this._authManager = null;
         }
 
-        this._spotifyClient = null;
-        this._lyricsFetcher = null;
+        if (this._spotifyClient) {
+            this._spotifyClient.destroy();
+            this._spotifyClient = null;
+        }
+        if (this._lyricsFetcher) {
+            this._lyricsFetcher.destroy();
+            this._lyricsFetcher = null;
+        }
     }
 
     _startPolling() {
@@ -194,6 +203,7 @@ export default class LyricsBarExtension extends Extension {
     async _checkExistingAuth() {
         try {
             const token = await this._authManager.getAccessToken();
+            if (!this._settings) return; // extension disabled during await
             if (token) {
                 console.log('[LyricsBar] Found existing valid token in keyring');
                 this._fetchUserProfile();
@@ -207,8 +217,12 @@ export default class LyricsBarExtension extends Extension {
     }
 
     async _fetchState() {
+        if (this._isFetching) return;
+        this._isFetching = true;
+
         try {
             const track = await this._spotifyClient.getCurrentTrack();
+            if (!this._settings) return; // extension disabled during await
 
             if (!track) {
                 this._isPlaying = false;
@@ -220,6 +234,11 @@ export default class LyricsBarExtension extends Extension {
             this._lastProgress = track.progress;
             this._lastUpdateTime = GLib.get_monotonic_time() / 1000000;
 
+            // If we got a track but auth status is missing, fix it
+            if (!this._settings.get_string('authenticated-user')) {
+                this._fetchUserProfile();
+            }
+
             if (!this._currentTrack || this._currentTrack.id !== track.id) {
                 this._currentTrack = track;
                 this._currentLyrics = null;
@@ -229,12 +248,15 @@ export default class LyricsBarExtension extends Extension {
             }
         } catch (e) {
             console.error('[LyricsBar] Error in poll loop:', e);
+        } finally {
+            this._isFetching = false;
         }
     }
 
     async _fetchUserProfile() {
         try {
             const profile = await this._spotifyClient.getUserProfile();
+            if (!this._settings) return; // extension disabled during await
             if (profile && profile.display_name) {
                 this._settings.set_string('authenticated-user', profile.display_name);
                 Main.notify('LyricsBar', `Logged in as ${profile.display_name}`);
@@ -245,25 +267,41 @@ export default class LyricsBarExtension extends Extension {
             }
         } catch (e) {
             console.error('[LyricsBar] Failed to fetch user profile:', e);
+            if (!this._settings) return;
             this._settings.set_string('authenticated-user', 'Spotify User');
             Main.notify('LyricsBar', 'Successfully logged in to Spotify!');
         }
     }
 
     async _fetchLyrics(track) {
+        // Cancel any previous lyrics request
+        if (this._lyricsCancellable) {
+            this._lyricsCancellable.cancel();
+        }
+        this._lyricsCancellable = new Gio.Cancellable();
+        const cancellable = this._lyricsCancellable;
+
         try {
-            const lyrics = await this._lyricsFetcher.fetchLyrics(track);
+            const lyrics = await this._lyricsFetcher.fetchLyrics(track, cancellable);
+            if (!this._indicator) return; // extension disabled during await
             if (this._currentTrack && this._currentTrack.id === track.id) {
                 this._currentLyrics = lyrics;
             }
         } catch (e) {
-            console.error('[LyricsBar] Error fetching lyrics:', e);
+            if (!cancellable.is_cancelled()) {
+                console.error('[LyricsBar] Error fetching lyrics:', e);
+            }
         }
     }
 
     _updateUI() {
-        if (!this._isPlaying || !this._currentTrack) {
+        if (!this._currentTrack) {
             this._indicator.update(null, null);
+            return;
+        }
+
+        if (!this._isPlaying) {
+            this._indicator.update(this._currentTrack, null);
             return;
         }
 

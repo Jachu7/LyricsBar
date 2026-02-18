@@ -13,17 +13,17 @@ export const LyricsFetcher = GObject.registerClass({
         this._session.user_agent = 'LyricsBar/1.0';
     }
 
-    async fetchLyrics(track) {
+    async fetchLyrics(track, cancellable = null) {
         if (!track) return null;
 
         try {
             // 1) Try exact match first (fastest)
-            const exactResult = await this._fetchExact(track);
+            const exactResult = await this._fetchExact(track, cancellable);
             if (exactResult) return exactResult;
 
             // 2) Fallback: search by title + artist (more flexible)
             console.log(`[LyricsBar] Exact match failed, trying search for: ${track.artist} - ${track.title}`);
-            const searchResult = await this._fetchSearch(track);
+            const searchResult = await this._fetchSearch(track, cancellable);
             if (searchResult) return searchResult;
 
             return null;
@@ -33,7 +33,7 @@ export const LyricsFetcher = GObject.registerClass({
         }
     }
 
-    async _fetchExact(track) {
+    async _fetchExact(track, cancellable = null) {
         const params = [
             `track_name=${encodeURIComponent(track.title)}`,
             `artist_name=${encodeURIComponent(track.artist)}`,
@@ -42,7 +42,7 @@ export const LyricsFetcher = GObject.registerClass({
         ].join('&');
 
         const url = `${LRCLIB_API}/get?${params}`;
-        const data = await this._request(url);
+        const data = await this._request(url, cancellable);
 
         if (data && data.syncedLyrics) {
             return this._parseSyncedLyrics(data.syncedLyrics);
@@ -50,7 +50,7 @@ export const LyricsFetcher = GObject.registerClass({
         return null;
     }
 
-    async _fetchSearch(track) {
+    async _fetchSearch(track, cancellable = null) {
         // Search with just title and artist — more forgiving
         const params = [
             `track_name=${encodeURIComponent(track.title)}`,
@@ -58,7 +58,7 @@ export const LyricsFetcher = GObject.registerClass({
         ].join('&');
 
         const url = `${LRCLIB_API}/search?${params}`;
-        const data = await this._request(url);
+        const data = await this._request(url, cancellable);
 
         if (data && Array.isArray(data) && data.length > 0) {
             // Find the best match: prefer synced lyrics, closest duration
@@ -79,9 +79,9 @@ export const LyricsFetcher = GObject.registerClass({
                 }
             }
 
-            // If no synced lyrics found, take first result with any lyrics
+            // If no synced result found via scoring, try plain lyrics
             if (!best) {
-                best = data.find(r => r.syncedLyrics) || data.find(r => r.plainLyrics);
+                best = data.find(r => r.plainLyrics);
             }
 
             if (best) {
@@ -95,15 +95,18 @@ export const LyricsFetcher = GObject.registerClass({
         return null;
     }
 
-    async _request(url) {
+    async _request(url, cancellable = null) {
         try {
             const message = Soup.Message.new('GET', url);
-            const bytes = await this._session.send_and_read_async(message, GLib.PRIORITY_DEFAULT, null);
+            const bytes = await this._session.send_and_read_async(message, GLib.PRIORITY_DEFAULT, cancellable);
             const status = message.get_status();
 
             if (status === 200) {
                 const decoder = new TextDecoder();
                 return JSON.parse(decoder.decode(bytes.get_data()));
+            } else if (status === 429) {
+                console.warn(`[LyricsBar] LRCLIB rate limited (429) for ${url}`);
+                return null;
             }
             return null;
         } catch (e) {
@@ -137,5 +140,12 @@ export const LyricsFetcher = GObject.registerClass({
             }
         }
         return lyrics;
+    }
+
+    destroy() {
+        if (this._session) {
+            this._session.abort();
+            this._session = null;
+        }
     }
 });

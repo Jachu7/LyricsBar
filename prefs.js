@@ -1,5 +1,6 @@
 import Adw from 'gi://Adw';
 import Gio from 'gi://Gio';
+import GLib from 'gi://GLib';
 import Gtk from 'gi://Gtk';
 import {ExtensionPreferences, gettext as _} from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
@@ -32,7 +33,8 @@ export default class LyricsBarPreferences extends ExtensionPreferences {
         const updateStatus = () => {
             const user = settings.get_string('authenticated-user');
             if (user) {
-                statusLabel.set_markup(`<span foreground="#4CAF50">✓ Logged in as <b>${user}</b></span>`);
+                const escaped = GLib.markup_escape_text(user, -1);
+                statusLabel.set_markup(`<span foreground="#4CAF50">✓ Logged in as <b>${escaped}</b></span>`);
                 statusRow.set_subtitle('');
             } else {
                 statusLabel.set_markup('<span foreground="#FF5252">✗ Not logged in</span>');
