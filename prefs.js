@@ -1,4 +1,5 @@
 import Adw from 'gi://Adw';
+import Gdk from 'gi://Gdk';
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import Gtk from 'gi://Gtk';
@@ -28,26 +29,6 @@ export default class LyricsBarPreferences extends ExtensionPreferences {
         const statusLabel = new Gtk.Label({
             halign: Gtk.Align.END,
             valign: Gtk.Align.CENTER,
-        });
-
-        const updateStatus = () => {
-            const user = settings.get_string('authenticated-user');
-            if (user) {
-                const escaped = GLib.markup_escape_text(user, -1);
-                statusLabel.set_markup(`<span foreground="#4CAF50">✓ Logged in as <b>${escaped}</b></span>`);
-                statusRow.set_subtitle('');
-            } else {
-                statusLabel.set_markup('<span foreground="#FF5252">✗ Not logged in</span>');
-                statusRow.set_subtitle(_('Click "Log in" to connect your Spotify'));
-            }
-        };
-        updateStatus();
-
-        // Listen for changes (updates when extension sets authenticated-user)
-        const statusId = settings.connect('changed::authenticated-user', updateStatus);
-        window.connect('close-request', () => {
-            settings.disconnect(statusId);
-            return false;
         });
 
         statusRow.add_suffix(statusLabel);
@@ -81,7 +62,60 @@ export default class LyricsBarPreferences extends ExtensionPreferences {
         });
         authGroup.add(logoutButton);
 
+        // Update status and button visibility
+        const updateStatus = () => {
+            const user = settings.get_string('authenticated-user');
+            const loggedIn = !!user;
+            if (loggedIn) {
+                const escaped = GLib.markup_escape_text(user, -1);
+                statusLabel.set_markup(`<span foreground="#4CAF50">✓ Logged in as <b>${escaped}</b></span>`);
+                statusRow.set_subtitle('');
+            } else {
+                statusLabel.set_markup('<span foreground="#FF5252">✗ Not logged in</span>');
+                statusRow.set_subtitle(_('Click "Log in" to connect your Spotify'));
+            }
+            loginButton.set_visible(!loggedIn);
+            logoutButton.set_visible(loggedIn);
+        };
+        updateStatus();
+
+        // Listen for changes (updates when extension sets authenticated-user)
+        const statusId = settings.connect('changed::authenticated-user', updateStatus);
+        window.connect('close-request', () => {
+            settings.disconnect(statusId);
+            return false;
+        });
+
         authPage.add(authGroup);
+
+        // ── Support the Project ──
+        const supportGroup = new Adw.PreferencesGroup({
+            title: _('Support the Project'),
+            description: _('If you enjoy this extension, consider buying me a coffee! ☕'),
+        });
+
+        const coffeeButton = new Gtk.Button({
+            label: '☕ Buy me a coffee',
+            margin_top: 10,
+            margin_bottom: 10,
+            halign: Gtk.Align.CENTER,
+        });
+        coffeeButton.set_cursor(Gdk.Cursor.new_from_name('pointer', null));
+
+        const cssProvider = new Gtk.CssProvider();
+        cssProvider.load_from_string(
+            'button { background: #FFDD00; color: #000000; font-weight: bold; }'
+        );
+        coffeeButton.get_style_context().add_provider(
+            cssProvider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+        );
+
+        coffeeButton.connect('clicked', () => {
+            Gio.AppInfo.launch_default_for_uri('https://buymeacoffee.com/jachu7', null);
+        });
+
+        supportGroup.add(coffeeButton);
+        authPage.add(supportGroup);
 
         // ── Appearance Page ──
         const appearancePage = new Adw.PreferencesPage({
