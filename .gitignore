@@ -1,0 +1,16 @@
+.DS_Store
+Thumbs.db
+
+schemas/gschemas.compiled
+
+*.zip
+*.tar.gz
+_build/
+
+.vscode/
+.idea/
+*.swp
+*~
+*.swo
+
+logo.psd

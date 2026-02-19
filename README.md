@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/nicoschmit/chrome-spotify-lyrics/master/icon128.png" width="80" alt="LyricsBar Logo" />
+  <img src="logo.jpg" width="150" alt="LyricsBar Logo" />
   <br/>
   <b>LyricsBar for Spotify</b>
 </p>
