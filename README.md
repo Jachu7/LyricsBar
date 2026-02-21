@@ -12,7 +12,9 @@
 ##  Showcase of the extension
 
 <p align="center">
-  <video src="https://github.com/Jachu7/LyricsBar/blob/main/images/vid1.mp4" width="800" controls></video>
+  <video width="800" controls>
+    <source src="https://github.com/Jachu7/LyricsBar/raw/main/images/vid1.mp4" type="video/mp4" />
+  </video>
   <br/>
   <i>A showcase of how the extension works in practice</i>
 </p>
