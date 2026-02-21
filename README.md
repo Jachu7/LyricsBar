@@ -13,7 +13,7 @@
 
 <p align="center">
   <video width="800" controls>
-    <source src="https://github.com/Jachu7/LyricsBar/raw/main/images/vid1.mp4" type="video/mp4" />
+    <source src="/images/vid1.mp4" type="video/mp4" />
   </video>
   <br/>
   <i>A showcase of how the extension works in practice</i>
