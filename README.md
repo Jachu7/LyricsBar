@@ -12,9 +12,7 @@
 ##  Showcase of the extension
 
 <p align="center">
-  <video width="800" controls>
-    <source src="[/images/vid1.mp4](https://github.com/user-attachments/assets/6c612a03-41a9-4d27-8cc1-c66d32a530c4)" type="video/mp4" />
-  </video>
+  <video src="https://github.com/user-attachments/assets/e82cccb1-8e68-4e2c-ba9a-d05ad1ca1671" width="800" controls></video>
   <br/>
   <i>A showcase of how the extension works in practice</i>
 </p>
