@@ -14,7 +14,6 @@
 <p align="center">
   <video src="https://github.com/user-attachments/assets/e82cccb1-8e68-4e2c-ba9a-d05ad1ca1671" width="800" controls></video>
   <br/>
-  <i>A showcase of how the extension works in practice</i>
 </p>
 
 ##  Features
@@ -48,6 +47,11 @@ The settings window has three tabs:
 </p>
 
 When you click **Log in to Spotify**, your browser opens the **official Spotify authorization page**. Spotify asks you to confirm the permissions the extension needs (read your currently playing track). After clicking **Agree**, you are redirected back and the extension connects automatically — no password ever leaves Spotify's servers.
+
+## Problems ⚠️
+> [!WARNING]
+> - This extension has **only been tested on CachyOS with GNOME 49**. Compatibility with other distributions or older GNOME versions is not guaranteed.
+> - Lyrics that do not have active synchronization data in the **LRCLIB** database will not display properly.
 
 ## Requirements
 
