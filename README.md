@@ -12,8 +12,11 @@
 ##  Showcase of the extension
 
 <p align="center">
-  <video src="https://github.com/user-attachments/assets/e82cccb1-8e68-4e2c-ba9a-d05ad1ca1671" width="800" controls></video>
-  <br/>
+  <a href="https://www.youtube.com/watch?v=42S4wS6Dyr0">
+    <img src="https://img.youtube.com/vi/42S4wS6Dyr0/maxresdefault.jpg" width="800" alt="LyricsBar Showcase">
+    <br>
+    ▶ Click to watch YouTube demonstration
+  </a>
 </p>
 
 ##  Features
