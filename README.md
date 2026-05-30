@@ -53,12 +53,12 @@ When you click **Log in to Spotify**, your browser opens the **official Spotify 
 
 ## Problems ⚠️
 > [!WARNING]
-> - This extension has **only been tested on CachyOS with GNOME 49**. Compatibility with other distributions or older GNOME versions is not guaranteed.
+> - This extension has **only been tested on CachyOS with GNOME 49, 50, and 50.1**. Compatibility with other distributions or older GNOME versions is not guaranteed.
 > - Lyrics that do not have active synchronization data in the **LRCLIB** database will not display properly.
 
 ## Requirements
 
-- **GNOME Shell 49**
+- **GNOME Shell 49, 50, or 50.1**
 - **Spotify Premium** account (required by the Spotify Web API for playback state)
 - Active internet connection
 

@@ -18,7 +18,7 @@ export default class LyricsBarExtension extends Extension {
         this._lyricsFetcher = new LyricsFetcher();
 
         // Create indicator, passing settings for live updates
-        this._indicator = new SpotifyStatusIndicator(this._settings);
+        this._indicator = new SpotifyStatusIndicator(this._settings, this);
 
         // Add to panel at configured position and index
         const position = this._settings.get_string('panel-position');
@@ -108,6 +108,15 @@ export default class LyricsBarExtension extends Extension {
         console.log('[LyricsBar] Extension disabling...');
 
         this._stopPolling();
+
+        if (this._lyricsCancellable) {
+            this._lyricsCancellable.cancel();
+            this._lyricsCancellable = null;
+        }
+
+        this._currentTrack = null;
+        this._currentLyrics = null;
+        this._isPlaying = false;
 
         if (this._indicator) {
             this._indicator.destroy();

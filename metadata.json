@@ -3,9 +3,11 @@
   "description": "Your top bar, now singing. Real-time synchronized Spotify lyrics on your GNOME desktop panel.",
   "uuid": "lyricsbar@Jachu7.github.io",
   "shell-version": [
-    "49"
+    "49",
+    "50",
+    "50.1"
   ],
-  "url": "",
+  "url": "https://github.com/Jachu7/LyricsBar",
   "settings-schema": "org.gnome.shell.extensions.barlyrics",
   "version": 1
 }

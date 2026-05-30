@@ -8,10 +8,11 @@ import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 export const SpotifyStatusIndicator = GObject.registerClass({
     GTypeName: 'BarLyricsIndicator',
 }, class SpotifyStatusIndicator extends PanelMenu.Button {
-    _init(settings) {
+    _init(settings, extension) {
         super._init(0.0, 'LyricsBar for Spotify', false);
 
         this._settings = settings;
+        this._extension = extension;
 
         // Icon (hidden by default)
         this._icon = new St.Icon({
@@ -73,14 +74,8 @@ export const SpotifyStatusIndicator = GObject.registerClass({
 
         const settingsItem = new PopupMenu.PopupMenuItem('Extension Settings');
         settingsItem.connect('activate', () => {
-            try {
-                const proc = Gio.Subprocess.new(
-                    ['gnome-extensions', 'prefs', 'lyricsbar@Jachu7.github.io'],
-                    Gio.SubprocessFlags.NONE
-                );
-                proc.wait_async(null, null);
-            } catch (e) {
-                console.error('[LyricsBar] Failed to open settings:', e);
+            if (this._extension) {
+                this._extension.openPreferences();
             }
         });
         this.menu.addMenuItem(settingsItem);
